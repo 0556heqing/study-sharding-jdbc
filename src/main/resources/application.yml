@@ -1,0 +1,67 @@
+server:
+  name: study-sharding-jdbc
+  port: 8080
+
+spring:
+  application:
+    name: ${server.name}
+
+  shardingsphere:
+    datasource:
+      # 设置两个数据库
+      names: ds0,ds1
+      # 第一个数据库的配置信息
+      ds0:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/follow?allowMultiQueries=true&autoReconnect=true&useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+        username: root
+        password: 246512
+      # 第二个数据库的配置信息
+      ds1:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/demo?allowMultiQueries=true&autoReconnect=true&useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+        username: root
+        password: 246512
+    sharding:
+      # 分库配置
+      default-database-strategy:
+        sharding-column: id
+        algorithm-expression: ds$->{id % 2}
+        # 自定义分片策略
+        standard:
+          sharding-column: id
+          precise-algorithm-class-name: com.heqing.sharding.jdbc.algorithm.MyPreciseShardingAlgorithm
+      # 分表配置
+      tables:
+        # 表名
+        person:
+          # 设置为2个库1张表。。。1库n表：ds.t_$->{0..n} ; n库1表：ds$->{0..n}.t ; n库n表：ds$->{0..n}.t_$->{0..n}
+          actual-data-nodes: ds$->{0..1}.person_$->{0..2}
+          table-strategy:
+            inline:
+              sharding-column: id
+              algorithm-expression: person_$->{id % 3}
+          key-generator:
+            column: id
+            type: SNOWFLAKE
+      # 默认使用第一个数据库
+      defaultDataSourceName: ds0
+    props:
+      # 是否打印sql语句
+      sql.show: true
+
+mybatis:
+  mapper-locations: classpath*:com/heqing/sharding/jdbc/repository/mapper/*.xml
+  type-aliases-package: com.heqing.sharding.jdbc.repository
+
+#pagehelper
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  params: count=countSql
+
+
+

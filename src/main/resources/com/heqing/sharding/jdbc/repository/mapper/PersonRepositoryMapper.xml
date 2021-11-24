@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.heqing.sharding.jdbc.repository.PersonRepository">
+
+    <!-- 用户数据库字段 -->
+    <sql id="personFields">
+        id
+        , name
+        , sex
+        , birthday
+        , addr_province
+        , remark
+    </sql>
+
+    <!-- 用户对象属性 -->
+    <parameterMap id="personParameterMap" type="com.heqing.sharding.jdbc.entity.Person">
+        <parameter property="id"/>
+        <parameter property="name"/>
+        <parameter property="sex"/>
+        <parameter property="birthday"/>
+        <parameter property="addrProvince"/>
+        <parameter property="remark"/>
+    </parameterMap>
+
+    <!-- 数据库字段与对象属性映射 -->
+    <resultMap id="personResultMap" type="com.heqing.sharding.jdbc.entity.Person">
+        <result property="id" column="id" />
+        <result property="name" column="name" />
+        <result property="sex" column="sex" />
+        <result property="birthday" column="birthday" />
+        <result property="addrProvince" column="addr_province" />
+        <result property="remark" column="remark" />
+    </resultMap>
+
+    <!-- 增加用户 -->
+    <insert id="savePerson" parameterMap="personParameterMap" >
+        INSERT INTO
+          person( <include refid="personFields"/> )
+        VALUES ( ? , ? , ? , ? , ? , ?);
+    </insert>
+
+    <!-- 增加多条用户 -->
+    <insert id="saveBatchPerson" parameterType="java.util.List">
+        INSERT INTO
+          person( <include refid="personFields"/> )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+              #{item.id}
+              ,#{item.name}
+              ,#{item.sex}
+              ,#{item.birthday}
+              ,#{item.addrProvince}
+              ,#{item.remark}
+            )
+        </foreach>
+        ;
+    </insert>
+
+    <!-- 获取所有用户 -->
+    <select id="listPerson" resultMap="personResultMap">
+        SELECT
+          <include refid="personFields"/>
+        FROM person
+        ORDER BY
+           id DESC    </select>
+
+    <!-- 根据条件获取多条用户 -->
+    <select id="listPersonByParam" parameterType="java.util.Map" resultMap="personResultMap">
+        SELECT
+          <include refid="personFields"/>
+        FROM person
+        <where>
+           <if test="id != null and id != ''"> AND id=#{id} </if>
+           <if test="name != null and name != ''"> AND name LIKE CONCAT('%',#{name},'%') </if>
+           <if test="sex != null and sex != ''"> AND sex=#{sex} </if>
+           <if test="birthday != null"> AND date(birthday)=date(#{birthday,jdbcType=TIMESTAMP}) </if>
+            <if test="addrProvince != null and addrProvince != ''"> AND addr_province=#{addrProvince} </if>
+           <if test="remark != null and remark != ''"> AND remark=#{remark} </if>
+        </where>
+        ORDER BY
+           id DESC    </select>
+
+    <!-- 根据条件删除多条用户 -->
+    <delete id="deletePersonByParam" parameterMap="personParameterMap">
+        DELETE FROM person
+        <where>
+          <if test="id != null and id != ''"> AND id=#{id} </if>
+          <if test="name != null and name != ''"> AND name=#{name} </if>
+          <if test="sex != null and sex != ''"> AND sex=#{sex} </if>
+          <if test="birthday != null"> AND date(birthday)=date(#{birthday,jdbcType=TIMESTAMP}) </if>
+          <if test="addrProvince != null and addrProvince != ''"> AND addr_province=#{addrProvince} </if>
+          <if test="remark != null and remark != ''"> AND remark=#{remark} </if>
+        </where>
+        ;
+    </delete>
+
+    <!-- 根据多个主键批量修改用户 -->
+    <update id="updateBatchPersonByKey"  parameterType="java.util.List">
+<foreach collection="list" item="item" index="index" open="" close="" separator=";">
+        UPDATE person
+        <trim prefix="SET" prefixOverrides=",">
+          <if test="item.id != null   and item.id !='' ">, id=#{item.id}</if>
+          <if test="item.name != null   and item.name !='' ">, name=#{item.name}</if>
+          <if test="item.sex != null   and item.sex !='' ">, sex=#{item.sex}</if>
+          <if test="item.birthday != null   ">, birthday=#{item.birthday}</if>
+          <if test="item.addrProvince != null   and item.addrProvince !='' ">, addr_province=#{item.addrProvince}</if>
+          <if test="item.remark != null   and item.remark !='' ">, remark=#{item.remark}</if>
+        </trim>
+        <where>
+          AND id=#{item.id}
+        </where>
+</foreach>
+    </update>
+
+    <!-- 根据主键修改用户 -->
+    <update id="updatePersonByKey" parameterMap="personParameterMap">
+        UPDATE
+          person
+        <trim prefix="SET" prefixOverrides=",">
+          <if test="id != null  and item.id !='' ">, id=#{id}</if>
+          <if test="name != null  and item.name !='' ">, name=#{name}</if>
+          <if test="sex != null  and item.sex !='' ">, sex=#{sex}</if>
+          <if test="birthday != null  ">, birthday=#{birthday}</if>
+          <if test="addrProvince != null  and item.addrProvince !='' ">, addr_province=#{addrProvince}</if>
+          <if test="remark != null  and item.remark !='' ">, remark=#{remark}</if>
+        </trim>
+        <where>
+          AND id=#{id}
+        </where>
+        ;
+    </update>
+
+    <!-- 根据主键获取用户 -->
+    <select id="getPersonByKey" parameterType="java.util.Map" resultMap="personResultMap">
+        SELECT
+          <include refid="personFields"/>
+        FROM person
+        <where>
+          AND id=#{id}
+        </where>
+    </select>
+
+    <!-- 根据主键删除用户 -->
+    <delete id="deletePersonByKey" parameterType="java.util.Map">
+        DELETE FROM person
+        <where>
+          AND id=#{id}
+        </where>
+        ;
+    </delete>
+
+    <!-- 根据多个主键删除多条用户 -->
+    <delete id="deleteBatchPersonByKey" parameterType="java.util.List">
+        DELETE FROM person
+          WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ;
+    </delete>
+
+    <!-- 根据多个主键获取用户 -->
+    <select id="listPersonByKey" parameterType="java.util.List" resultMap="personResultMap">
+        SELECT <include refid="personFields"/>
+        FROM person
+        WHERE id IN
+        <foreach collection="list" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+</mapper>

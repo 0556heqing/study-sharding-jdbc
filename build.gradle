@@ -1,0 +1,50 @@
+plugins {
+    id 'org.springframework.boot' version '2.3.3.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+}
+
+group 'com.heqing.sharding.jdbc'
+version '1.0-SNAPSHOT'
+
+// 指定编译编译.java文件的jdk版本
+sourceCompatibility = 1.8
+// 确保class文件与targetCompatibility指定版本，或者更新的java虚拟机兼容
+targetCompatibility = 1.8
+// java编译的时候缺省状态下会因为中文字符而失败
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+// 编译JAVA文件时采用UTF-8
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // 数据库
+    compile 'mysql:mysql-connector-java:8.0.22'
+    // 这里用的是sharding-jdbc-spring-boot-starter。需要注意的是,此时druid不能用spring-boot-starter版本的,需要用正常的包
+    compile 'com.alibaba:druid:1.2.1'
+
+    compile 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.0.1'
+    compile 'com.github.pagehelper:pagehelper-spring-boot-starter:1.2.10'
+
+    compile 'org.apache.shardingsphere:sharding-jdbc-spring-boot-starter:4.0.1'
+
+    // 构造器工具 lombok
+    compile 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+
+    // 阿里Json工具
+    implementation 'com.alibaba:fastjson:1.2.70'
+
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+}
+
+test {
+    useJUnitPlatform()
+}
